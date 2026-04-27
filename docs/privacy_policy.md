@@ -1,3 +1,7 @@
+---
+title: Quick Lock
+---
+
 # Privacy Policy
 
 **Effective Date:** 2026-04-27
