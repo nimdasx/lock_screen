@@ -3,23 +3,24 @@
 A minimal, production-ready Flutter app designed to instantly lock your Android device's screen. Ideal for users with broken power buttons or those who want a simple software-based alternative.
 
 ## Features
-- **Instant Locking**: Tap the app icon to immediately lock your device.
-- **Minimalist UI**: No ads, no tracking, just a single purpose app.
-- **Lightweight**: Uses Android's native `DevicePolicyManager`.
+- **Biometric Friendly**: Uses Accessibility Service API so Fingerprint/Face Unlock continues to work.
+- **Home Screen Shortcut**: Create a dedicated "Lock" icon on your home screen for instant one-tap locking.
+- **Setup Page**: Easy-to-follow guide to enable required permissions.
+- **No Ads / No Tracking**: Lightweight and privacy-focused.
 
 ## Prerequisites
 
 - Flutter SDK (latest stable recommended)
 - Android Studio / Android SDK
-- An Android device or emulator (Android 5.0+)
+- An Android device running **Android 9.0 (Pie) or higher**.
 
 ## How it Works
 
-This app utilizes Android's **Accessibility Service API** to securely lock the screen without disabling biometric unlocks (like Fingerprint or Face Unlock). 
+This app utilizes Android's **Accessibility Service API** to securely lock the screen. Unlike the older "Device Admin" approach, this method allows the device to be unlocked using biometrics (Fingerprint/Face) without requiring a PIN/Pattern every time.
 
-*Note: The older "Device Admin" approach forces a PIN/Pattern input upon the next unlock. By using Accessibility Service (available on Android 9+), this limitation is bypassed.*
-
-Because this requires special permissions, the first time you open the app, it will prompt you to open the **Accessibility Settings**. Once you enable the "Lock Screen Service", launching the app again will lock the screen instantly.
+Because this requires special permissions, the app provides a setup guide:
+1. **Enable Service**: You must toggle the "Lock Screen Service" in your device's Accessibility settings.
+2. **Add Shortcut**: Once enabled, you can add a "Lock" shortcut to your home screen. This shortcut is designed to trigger the lock action instantly and close itself.
 
 ## Steps to Run, Build, and Test
 
@@ -38,27 +39,24 @@ flutter build apk --release
 ```
 You can find the generated APK at `build/app/outputs/flutter-apk/app-release.apk`. Transfer this file to your device and install it.
 
-### 3. Testing
+### 3. Testing & Setup
 1. Install and launch the app.
-2. Tap "Open Settings". This will take you to your device's Accessibility settings.
+2. Tap **"Open Accessibility Settings"**.
 3. Find **"Lock Screen Service"** (usually under "Installed apps" or "Downloaded services") and toggle it **ON**.
-4. Once granted, open the app again to test the lock functionality.
-5. Try closing the app and launching it from your home screen. It should instantly lock the device, and you should be able to unlock it with your fingerprint!
+4. Return to the app and tap **"Add to Home Screen"**.
+5. Use the new "Lock Screen" icon on your home screen to lock your device instantly!
 
-## Instructions for Home Screen Shortcut
+## Android 13+ Note (Restricted Settings)
 
-To make the lock screen easily accessible:
-1. Open your app drawer.
-2. Find the **"lock_screen"** app.
-3. Long-press the icon and drag it to your home screen or dock for easy access.
-4. Now, simply tapping the icon on your home screen will lock the device instantly without needing to press the physical power button.
-
-## Uninstallation
-
-Unlike the Device Admin approach, apps using Accessibility Services can be uninstalled normally just like any other app. Simply long-press the app icon on your home screen and select **Uninstall**, or remove it via Settings > Apps.
+On Android 13 and above, the system might block you from enabling the Accessibility Service for side-loaded apps.
+**To fix this:**
+1. Go to **Settings > Apps > Lock Screen**.
+2. Tap the **three dots** in the top-right corner.
+3. Select **"Allow restricted settings"**.
+4. You can now enable the Accessibility Service in the main accessibility settings.
 
 ## Project Structure Highlights
-- `lib/main.dart`: Contains the Flutter UI and MethodChannel communication.
-- `android/app/src/main/kotlin/.../MainActivity.kt`: Handles the MethodChannel calls and checks Accessibility Service status.
-- `android/app/src/main/kotlin/.../LockScreenAccessibilityService.kt`: The AccessibilityService class that triggers `GLOBAL_ACTION_LOCK_SCREEN`.
-- `android/app/src/main/res/xml/accessibility_service_config.xml`: Declares the Accessibility Service configuration.
+- `lib/main.dart`: Flutter UI for the setup page and platform channel logic.
+- `android/.../MainActivity.kt`: Handles shortcut creation and triggers the lock broadcast.
+- `android/.../LockScreenAccessibilityService.kt`: The background service that performs the actual `GLOBAL_ACTION_LOCK_SCREEN`.
+- `android/.../accessibility_service_config.xml`: Configuration for the accessibility service.
