@@ -1,9 +1,10 @@
 package id.web.sofy.lock_screen
 
-import android.app.admin.DevicePolicyManager
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.provider.Settings
+import android.text.TextUtils
+import android.os.Build
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -20,11 +21,15 @@ class MainActivity : FlutterActivity() {
                     result.success(success)
                 }
                 "isDeviceAdmin" -> {
-                    result.success(isDeviceAdminEnabled())
+                    // Reusing the same method name from Flutter side but checking Accessibility instead
+                    result.success(isAccessibilityServiceEnabled())
                 }
                 "requestAdmin" -> {
-                    requestAdminPrivileges()
+                    requestAccessibilityPrivileges()
                     result.success(null)
+                }
+                "isAccessibilitySupported" -> {
+                    result.success(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
                 }
                 else -> {
                     result.notImplemented()
@@ -33,29 +38,49 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun isDeviceAdminEnabled(): Boolean {
-        val devicePolicyManager = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-        val compName = ComponentName(this, LockScreenAdminReceiver::class.java)
-        return devicePolicyManager.isAdminActive(compName)
+    private fun isAccessibilityServiceEnabled(): Boolean {
+        var accessibilityEnabled = 0
+        val service = packageName + "/" + LockScreenAccessibilityService::class.java.canonicalName
+        try {
+            accessibilityEnabled = Settings.Secure.getInt(
+                applicationContext.contentResolver,
+                Settings.Secure.ACCESSIBILITY_ENABLED
+            )
+        } catch (e: Settings.SettingNotFoundException) {
+            // Ignore
+        }
+
+        val colonSplitter = TextUtils.SimpleStringSplitter(':')
+        if (accessibilityEnabled == 1) {
+            val settingValue = Settings.Secure.getString(
+                applicationContext.contentResolver,
+                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+            )
+            if (settingValue != null) {
+                colonSplitter.setString(settingValue)
+                while (colonSplitter.hasNext()) {
+                    val accessibilityService = colonSplitter.next()
+                    if (accessibilityService.equals(service, ignoreCase = true)) {
+                        return true
+                    }
+                }
+            }
+        }
+        return false
     }
 
     private fun lockDeviceScreen(): Boolean {
-        val devicePolicyManager = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-        val compName = ComponentName(this, LockScreenAdminReceiver::class.java)
-
-        return if (devicePolicyManager.isAdminActive(compName)) {
-            devicePolicyManager.lockNow()
-            true
-        } else {
-            false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val service = LockScreenAccessibilityService.instance
+            if (service != null) {
+                return service.lockDeviceScreen()
+            }
         }
+        return false
     }
 
-    private fun requestAdminPrivileges() {
-        val compName = ComponentName(this, LockScreenAdminReceiver::class.java)
-        val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN)
-        intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, compName)
-        intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "This app requires device admin privileges to lock the screen.")
+    private fun requestAccessibilityPrivileges() {
+        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
         startActivity(intent)
     }
 }

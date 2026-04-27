@@ -35,12 +35,13 @@ class LockScreenPage extends StatefulWidget {
 class _LockScreenPageState extends State<LockScreenPage> with WidgetsBindingObserver {
   static const platform = MethodChannel('lock_screen_channel');
   bool _isAdminActive = false;
+  bool _isAccessibilitySupported = true;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _checkAdminAndLock();
+    _checkSupportAndStatus();
   }
 
   @override
@@ -52,23 +53,25 @@ class _LockScreenPageState extends State<LockScreenPage> with WidgetsBindingObse
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _checkAdminAndLock();
+      _checkSupportAndStatus();
     }
   }
 
-  Future<void> _checkAdminAndLock() async {
+  Future<void> _checkSupportAndStatus() async {
     try {
+      final bool isSupported = await platform.invokeMethod('isAccessibilitySupported');
       final bool isActive = await platform.invokeMethod('isDeviceAdmin');
       setState(() {
+        _isAccessibilitySupported = isSupported;
         _isAdminActive = isActive;
       });
       if (isActive) {
-        // If the user already granted admin privileges, we can lock instantly 
+        // If the user already granted privileges, we can lock instantly 
         // when they open the app.
         await _lockScreen();
       }
     } on PlatformException catch (e) {
-      debugPrint("Failed to check admin: '${e.message}'.");
+      debugPrint("Failed to check status: '${e.message}'.");
     }
   }
 
@@ -111,17 +114,23 @@ class _LockScreenPageState extends State<LockScreenPage> with WidgetsBindingObse
                 color: _isAdminActive ? Colors.green : Colors.orange,
               ),
               const SizedBox(height: 32),
-              if (!_isAdminActive) ...[
+              if (!_isAccessibilitySupported) ...[
                 const Text(
-                  'To use this app to lock your screen instantly, you need to grant Device Admin privileges.',
+                  'Your Android version is too old to use the Accessibility-based lock screen (Requires Android 9+).',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.redAccent),
+                ),
+              ] else if (!_isAdminActive) ...[
+                const Text(
+                  'To lock your screen instantly without disabling biometric unlock (fingerprint), please enable the Accessibility Service for this app.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
                   onPressed: _requestAdmin,
-                  icon: const Icon(Icons.security),
-                  label: const Text('Grant Permission'),
+                  icon: const Icon(Icons.accessibility_new),
+                  label: const Text('Open Settings'),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     textStyle: const TextStyle(fontSize: 18),
@@ -129,7 +138,7 @@ class _LockScreenPageState extends State<LockScreenPage> with WidgetsBindingObse
                 ),
               ] else ...[
                 const Text(
-                  'Permission granted. You can lock your screen by tapping the button below, or simply launching the app.',
+                  'Accessibility Service enabled. You can lock your screen by tapping the button below, or simply launching the app.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16),
                 ),

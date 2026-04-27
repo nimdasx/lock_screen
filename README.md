@@ -15,9 +15,11 @@ A minimal, production-ready Flutter app designed to instantly lock your Android 
 
 ## How it Works
 
-This app utilizes Android's Device Administration API. Specifically, it uses `DevicePolicyManager.lockNow()` to turn off the screen and lock the device.
+This app utilizes Android's **Accessibility Service API** to securely lock the screen without disabling biometric unlocks (like Fingerprint or Face Unlock). 
 
-Because this requires elevated permissions, the first time you open the app, it will prompt you to activate "Device Admin" privileges. Once activated, launching the app again will lock the screen instantly.
+*Note: The older "Device Admin" approach forces a PIN/Pattern input upon the next unlock. By using Accessibility Service (available on Android 9+), this limitation is bypassed.*
+
+Because this requires special permissions, the first time you open the app, it will prompt you to open the **Accessibility Settings**. Once you enable the "Lock Screen Service", launching the app again will lock the screen instantly.
 
 ## Steps to Run, Build, and Test
 
@@ -38,9 +40,10 @@ You can find the generated APK at `build/app/outputs/flutter-apk/app-release.apk
 
 ### 3. Testing
 1. Install and launch the app.
-2. Tap "Grant Permission" and activate the Device Admin app in the system settings.
-3. Once granted, tap "Lock Screen Now" to test the lock functionality.
-4. Try closing the app and launching it from your home screen. It should instantly lock the device.
+2. Tap "Open Settings". This will take you to your device's Accessibility settings.
+3. Find **"Lock Screen Service"** (usually under "Installed apps" or "Downloaded services") and toggle it **ON**.
+4. Once granted, open the app again to test the lock functionality.
+5. Try closing the app and launching it from your home screen. It should instantly lock the device, and you should be able to unlock it with your fingerprint!
 
 ## Instructions for Home Screen Shortcut
 
@@ -50,22 +53,12 @@ To make the lock screen easily accessible:
 3. Long-press the icon and drag it to your home screen or dock for easy access.
 4. Now, simply tapping the icon on your home screen will lock the device instantly without needing to press the physical power button.
 
-## Android Limitations & Uninstallation
+## Uninstallation
 
-**Uninstallation Issue:**
-Because this app uses Device Admin privileges, Android prevents you from uninstalling it directly from the home screen in standard ways.
-
-**How to Uninstall:**
-1. Open **Settings** on your Android device.
-2. Search for **Device Admin apps** (or navigate to Security > Device Admin apps).
-3. Find **"Lock Screen"** in the list and **Deactivate** it.
-4. You can now uninstall the app normally via Settings > Apps, or from the home screen.
-
-**Biometrics / Fingerprint Unlock Limitation:**
-On some Android versions (especially Android 9 Pie and below), using `DevicePolicyManager.lockNow()` will force a PIN/Password/Pattern unlock the next time you turn on the screen, disabling fingerprint or face unlock for that specific unlock. On newer Android versions, this behavior might still apply depending on the manufacturer's implementation.
+Unlike the Device Admin approach, apps using Accessibility Services can be uninstalled normally just like any other app. Simply long-press the app icon on your home screen and select **Uninstall**, or remove it via Settings > Apps.
 
 ## Project Structure Highlights
 - `lib/main.dart`: Contains the Flutter UI and MethodChannel communication.
-- `android/app/src/main/kotlin/.../MainActivity.kt`: Handles the MethodChannel calls and interacts with `DevicePolicyManager`.
-- `android/app/src/main/kotlin/.../LockScreenAdminReceiver.kt`: Required receiver class for Device Admin.
-- `android/app/src/main/res/xml/device_admin.xml`: Declares the required policy (`force-lock`).
+- `android/app/src/main/kotlin/.../MainActivity.kt`: Handles the MethodChannel calls and checks Accessibility Service status.
+- `android/app/src/main/kotlin/.../LockScreenAccessibilityService.kt`: The AccessibilityService class that triggers `GLOBAL_ACTION_LOCK_SCREEN`.
+- `android/app/src/main/res/xml/accessibility_service_config.xml`: Declares the Accessibility Service configuration.
