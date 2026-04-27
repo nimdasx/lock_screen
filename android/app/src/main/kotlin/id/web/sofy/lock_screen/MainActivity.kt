@@ -71,10 +71,10 @@ class MainActivity : FlutterActivity() {
 
     private fun lockDeviceScreen(): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val service = LockScreenAccessibilityService.instance
-            if (service != null) {
-                return service.lockDeviceScreen()
-            }
+            val intent = Intent(LockScreenAccessibilityService.ACTION_LOCK)
+            intent.setPackage(packageName)
+            sendBroadcast(intent)
+            return true
         }
         return false
     }
