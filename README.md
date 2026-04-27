@@ -1,4 +1,4 @@
-# Lock Screen App
+# Quick Lock
 
 A minimal, production-ready Flutter app designed to instantly lock your Android device's screen. Ideal for users with broken power buttons or those who want a simple software-based alternative.
 

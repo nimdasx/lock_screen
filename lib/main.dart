@@ -11,7 +11,7 @@ class LockScreenApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Lock Screen',
+      title: 'Quick Lock',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.blueGrey, 
@@ -103,7 +103,7 @@ class _LockScreenPageState extends State<LockScreenPage> with WidgetsBindingObse
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Lock Screen Setup'),
+        title: const Text('Quick Lock Setup'),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -115,7 +115,7 @@ class _LockScreenPageState extends State<LockScreenPage> with WidgetsBindingObse
               const Icon(Icons.phonelink_lock, size: 80, color: Colors.blueGrey),
               const SizedBox(height: 24),
               const Text(
-                'Welcome to Lock Screen App',
+                'Welcome to Quick Lock',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
