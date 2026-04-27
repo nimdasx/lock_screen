@@ -46,6 +46,14 @@ You can find the generated APK at `build/app/outputs/flutter-apk/app-release.apk
 4. Return to the app and tap **"Add to Home Screen"**.
 5. Use the new "Lock Screen" icon on your home screen to lock your device instantly!
 
+## Updating the App Icon
+
+If you want to change the app icon, simply replace the `assets/icon.png` file with your new icon (PNG format). Then, run the following command to automatically generate and apply the new icons for all resolutions:
+
+```bash
+dart run flutter_launcher_icons
+```
+
 ## Android 13+ Note (Restricted Settings)
 
 On Android 13 and above, the system might block you from enabling the Accessibility Service for side-loaded apps.
