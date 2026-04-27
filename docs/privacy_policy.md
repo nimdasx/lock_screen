@@ -1,5 +1,5 @@
 ---
-title: Quick Lock
+title: Privacy Policy
 ---
 
 # Privacy Policy
